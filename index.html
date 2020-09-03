@@ -1,0 +1,61 @@
+
+        let G = {
+            merge(html) {
+                let parser = new DOMParser()
+                let doc = parser.parseFromString(html, 'text/html')
+                let es = Array.from(doc.body.children)
+                es.forEach( e => { 
+                  let id = e.id
+                  if (document.getElementById(id) != null) {
+                      let old = document.getElementById(id)
+                      old.id = null
+                      let n   = document.importNode(e, true)
+                      old.parentNode.replaceChild(n, old)    
+                  } else {
+                      document.body.appendChild(document.importNode(e, true))
+                  }
+                })
+            },
+            getContents() {
+                fetch(`/nodes/${token}`).then(resp => {
+                   if (resp.status == 500) {
+                      G.stop()
+                      throw 'done'
+                   } else {
+                      return resp.json()
+                   }
+                }).then(js => {
+                   if (js.code == 0) {
+                      js.list.forEach(h => this.merge(h))
+                   }
+                }).catch(_ => G.stop())
+            },
+            start() {
+                this.stop()
+                this.timer = setInterval(this.getContents.bind(this), 50)
+            },
+            stop() {
+                if (this.timer) {
+                    clearInterval(this.timer)
+                    this.timer = null
+                }
+            },
+            sendAction(v) {
+                fetch(`/action/${token}`, {method: "POST", body: JSON.stringify(v)}).then(e => {
+                       console.log(e)
+                       if (e.status == 500) G.stop()
+                }).catch(_ => G.stop())
+            }
+        }
+        G.start()
+        notify = function(e) {
+            console.log(e)     
+            G.sendAction(e.value + "\r\n\r\n")
+        }
+     </script>
+  </head>
+  
+  <body>
+
+  <body>
+</html>
