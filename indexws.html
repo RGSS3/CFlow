@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-cn">
+  <head>
+     <meta charset='utf-8'>
+     <title>CFlow</title>
+     <script>
+        let G = {
+            merge(html) {
+                let parser = new DOMParser()
+                let doc = parser.parseFromString(html, 'text/html')
+                let es = Array.from(doc.body.children)
+                es.forEach( e => { 
+                  let id = e.id
+                  if (document.getElementById(id) != null) {
+                      let old = document.getElementById(id)
+                      old.id = null
+                      let n   = document.importNode(e, true)
+                      old.parentNode.replaceChild(n, old)    
+                  } else {
+                      document.body.appendChild(document.importNode(e, true))
+                  }
+                })
+            },
+            getContents() {
+                fetch(`/nodes/${token}`).then(resp => {
+                   if (resp.status == 500) {
+                      G.stop()
+                      throw 'done'
+                   } else {
+                      return resp.json()
+                   }
+                }).then(js => {
+                   if (js.code == 0) {
+                      js.list.forEach(h => this.merge(h))
+                   }
+                }).catch(_ => G.stop())
+            },
+            start() {
+                this.stop()
+                this.timer = setInterval(this.getContents.bind(this), 50)
+            },
+            stop() {
+                if (this.timer) {
+                    clearInterval(this.timer)
+                    this.timer = null
+                }
+            },
+            wsstart() {
+            	let client = this.client = new WebSocket('ws://localhost:8080/', 'cflow');
+            	client.onerror = function() {
+            		console.log('Connection Error');
+            	};
+ 
+            	client.onopen = function() {
+            		console.log('WebSocket Client Connected');
+            	};
+ 
+            	client.onclose = function() {
+            		console.log('closed');
+            	};
+            	client.onmessage = (e) => {
+            		if (typeof e.data === 'string') {
+            			this.merge(e.data)
+            		}
+            	};
+            },
+            sendAction(v) {
+                this.client.send(JSON.stringify(v))
+            }
+        }
+        G.wsstart()
+        notify = function(e) {
+            G.sendAction(e.getAttribute("data-notify") + "\r\n\r\n")
+        }
+	    document.addEventListener('click', function(e) {
+            let c = e.target
+            while (c != document) {
+	        if (c.hasAttribute("data-notify")) {
+                     return notify(c)
+                }
+                c = c.parentNode
+	    }
+        })
+     </script>
+  </head>
+  
+  <body>
+
+  <body>
+</html>
