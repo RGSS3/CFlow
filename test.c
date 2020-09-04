@@ -2,17 +2,17 @@
 
 int model = 0;
 
-void update_model() {
-   printf("<div id='p'>%d</div>\n", model); 
-   fflush(stdout);
+void update_model(void) {
+    printf("<div id='p'>%d</div>\n", model); 
+    fflush(stdout);
 }
 
 int main(void) {
     fprintf(stderr, "Hello world\n");
     fflush(stderr);
-    puts("<button onclick=notify(this) value=1>Up</button><br>");
+    puts("<button data-notify=1>Up</button><br>");
     fflush(stdout);
-    puts("<button onclick=notify(this) value=2>Down</button><br>");
+    puts("<button data-notify=2>Down</button><br>");
     fflush(stdout);
     update_model();
     while (1) {
@@ -29,3 +29,6 @@ int main(void) {
        }
     }
 }
+
+
+

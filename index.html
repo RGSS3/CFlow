@@ -49,9 +49,17 @@
         }
         G.start()
         notify = function(e) {
-            console.log(e)     
-            G.sendAction(e.value + "\r\n\r\n")
+            G.sendAction(e.getAttribute("data-notify") + "\r\n\r\n")
         }
+	document.addEventListener('click', function(e) {
+            let c = e.target
+            while (c != document) {
+	        if (c.hasAttribute("data-notify")) {
+                     return notify(c)
+                }
+                c = c.parentNode
+	    }
+        })
      </script>
   </head>
   
